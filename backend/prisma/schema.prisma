@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  username     String         @unique
+  password     String
+  avatar       String?
+  watchHistory WatchHistory[]
+  favorites    Favorite[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Movie {
+  id           String         @id @default(cuid())
+  tmdbId       Int?           @unique
+  title        String
+  description  String?
+  posterUrl    String?
+  backdropUrl  String?
+  releaseDate  DateTime?
+  rating       Float?
+  duration     Int?
+  genres       Genre[]
+  watchHistory WatchHistory[]
+  favorites    Favorite[]
+  videoUrl     String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Series {
+  id           String         @id @default(cuid())
+  tmdbId       Int?           @unique
+  title        String
+  description  String?
+  posterUrl    String?
+  backdropUrl  String?
+  releaseDate  DateTime?
+  rating       Float?
+  seasons      Season[]
+  genres       Genre[]
+  watchHistory WatchHistory[]
+  favorites    Favorite[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Season {
+  id       String    @id @default(cuid())
+  seriesId String
+  number   Int
+  episodes Episode[]
+  series   Series    @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+}
+
+model Episode {
+  id             String         @id @default(cuid())
+  seasonId       String
+  number         Int
+  title          String?
+  description    String?
+  videoUrl       String?
+  duration       Int?
+  season         Season         @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  watchHistories WatchHistory[]
+}
+
+model Genre {
+  id     String   @id @default(cuid())
+  name   String   @unique
+  movies Movie[]
+  series Series[]
+}
+
+model WatchHistory {
+  id        String   @id @default(cuid())
+  userId    String
+  movieId   String?
+  seriesId  String?
+  episodeId String?
+  progress  Float    @default(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  series    Series?  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  episode   Episode? @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  updatedAt DateTime @updatedAt
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  movieId   String?
+  seriesId  String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie     Movie?   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  series    Series?  @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
